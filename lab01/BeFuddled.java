@@ -5,25 +5,26 @@ import java.util.Random;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONException;
 
 public class BeFuddled {
   private class Game {
     public boolean finished;
     public String player1, player2;
     public Integer player1Points, player2Points;
-    public Integer actionNumber;
+    public Integer currentAction;
     private Random rand;
 
     public Game() {
       finished = false;
       player1Points = 0;
       player2Points = 0;
-      actionNumber = 0;
+      currentAction = 1;
       rand = new Random();
     } 
 
     public String pickPlayer() {
-      return rand.nextInt(1) ? this.player1 : this.player2;
+      return this.rand.nextInt(2) == 0 ? this.player1 : this.player2;
     }
   }
 
@@ -96,9 +97,9 @@ public class BeFuddled {
     Game game = new Game();
 
     do {
-      playerId = rand.nextInt(MAX_PLAYERS - 1) + 1;
+      playerId = rand.nextInt(MAX_PLAYERS) + 1;
       player1 = "u" + playerId.toString();
-      playerId = rand.nextInt(MAX_PLAYERS - 1) + 1;
+      playerId = rand.nextInt(MAX_PLAYERS) + 1;
       player2 = "u" + playerId.toString();
     } while (player1 == player2 ||
              alreadyPlayingGame(existingGames, player1) ||
@@ -115,7 +116,7 @@ public class BeFuddled {
    * @param args
    *   command line arguments
    **/
-  public void startLoggingGames(String[] args) {
+  public void startLoggingGames(String[] args) throws JSONException {
     String fileName = args[0];
     Integer jsonObjCount = Integer.parseInt(args[1]),
             numGames = 0,
@@ -140,7 +141,7 @@ public class BeFuddled {
     }
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws JSONException {
     BeFuddled main = new BeFuddled();
     main.startLoggingGames(args);
   }
