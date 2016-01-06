@@ -32,13 +32,13 @@ public class BeFuddled {
 
       if (i == 1) {
         // 10% chance to return a value between 9 and 40
-        return this.rand.nextInt(31) + 9;
+        return this.rand.nextInt(32) + 9;
       } else if (i == 10) {
         // 10% chance to return a value between 70 and 100
-        return this.rand.nextInt(30) + 70;
+        return this.rand.nextInt(31) + 70;
       } else {
         // 80% chance to return a value between 40 and 60
-        return this.rand.nextInt(20) + 40;
+        return this.rand.nextInt(21) + 40;
       }
     }
 
@@ -168,6 +168,7 @@ public class BeFuddled {
         action.put("points", game.playerPoints);
         String gameStatus = rand.nextInt(2) == 0 ? "Win" : "Loss";
         action.put("gameStatus", gameStatus);
+        game.finished = true;
       } else {
         // Perform regular or special move
       }
