@@ -164,7 +164,7 @@ public class BeFuddled {
         String gameStatus = rand.nextInt(2) == 0 ? "Win" : "Loss";
         action.put("gameStatus", gameStatus);
       } else {
-
+        // Perform regular or special move
       }
 
       game.currentAction++;
