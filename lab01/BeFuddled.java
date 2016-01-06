@@ -10,21 +10,42 @@ import org.json.JSONException;
 public class BeFuddled {
   private class Game {
     public boolean finished;
-    public String player1, player2;
-    public Integer player1Points, player2Points;
-    public Integer currentAction;
+    public String player;
+    public Integer playerPoints;
+    public Integer currentAction, maxActions;
     private Random rand;
 
     public Game() {
       finished = false;
-      player1Points = 0;
-      player2Points = 0;
+      playerPoints = 0;
       currentAction = 1;
       rand = new Random();
+      maxActions = generateMaxActions();
     } 
 
-    public String pickPlayer() {
-      return this.rand.nextInt(2) == 0 ? this.player1 : this.player2;
+    // Predetermined last action
+    private Integer generateMaxActions() {
+      Integer i = this.rand.nextInt(10) + 1;
+
+      if (i == 1) {
+        // 10% chance to return a value between 9 and 40
+        return this.rand.nextInt(31) + 9;
+      } else if (i == 10) {
+        // 10% chance to return a value between 70 and 100
+        return this.rand.nextInt(30) + 70;
+      } else {
+        // 80% chance to return a value between 40 and 60
+        return this.rand.nextInt(20) + 40;
+      }
+    }
+
+    public void printContents() {
+      System.out.println("--------------------");
+      System.out.println("player: " + this.player);
+      System.out.println("playerPoints: " + this.playerPoints);
+      System.out.println("currentAction: " + this.currentAction);
+      System.out.println("maxActions: " + this.maxActions);
+      System.out.println("--------------------");
     }
   }
 
@@ -49,10 +70,9 @@ public class BeFuddled {
     do {
       gameId = rand.nextInt(numGames + 1) + 1;
     } while (existingGames.get(gameId) != null && 
-             existingGames.get(gameId).finished == true);
+             existingGames.get(gameId).finished);
     assert(existingGames.get(gameId) == null || 
-           existingGames.get(gameId).finished == false);
-    System.out.println("gameId: " + gameId);
+           !existingGames.get(gameId).finished);
   
     return gameId;
   }
@@ -74,8 +94,7 @@ public class BeFuddled {
     for (Map.Entry<Integer, Game> gameEntry : existingGames.entrySet()) {
       Game game = gameEntry.getValue();
 
-      if (game.finished == false && 
-          (game.player1 == player || game.player2 == player)) {
+      if (game.player == player && !game.finished) {
         return true;
       }
     }
@@ -91,21 +110,16 @@ public class BeFuddled {
    *   The newly created game
    **/
   private Game generateGame(Map<Integer, Game> existingGames) {
-    String player1, player2;
+    String player;
     Integer playerId;
     Random rand = new Random();
     Game game = new Game();
 
     do {
       playerId = rand.nextInt(MAX_PLAYERS) + 1;
-      player1 = "u" + playerId.toString();
-      playerId = rand.nextInt(MAX_PLAYERS) + 1;
-      player2 = "u" + playerId.toString();
-    } while (player1 == player2 ||
-             alreadyPlayingGame(existingGames, player1) ||
-             alreadyPlayingGame(existingGames, player2));
-    game.player1 = player1;
-    game.player2 = player2;
+      player = "u" + playerId.toString();
+    } while (alreadyPlayingGame(existingGames, player));
+    game.player = player;
 
     return game;
   }
@@ -116,7 +130,7 @@ public class BeFuddled {
    * @param args
    *   command line arguments
    **/
-  public void startLoggingGames(String[] args) throws JSONException {
+  private void startLoggingGames(String[] args) throws JSONException {
     String fileName = args[0];
     Integer jsonObjCount = Integer.parseInt(args[1]),
             numGames = 0,
@@ -126,17 +140,36 @@ public class BeFuddled {
    
     for (int logCnt = 1; logCnt <= jsonObjCount; logCnt++) {
       Integer gameId = getGameId(games, numGames);
-      Game game;
 
       // Create a new game and add to map
-      if ((game = games.get(gameId)) == null) {
+      Game game = games.get(gameId);
+      if (game == null) {
         game = generateGame(games);
-        games.put(gameId, game);
       }
 
       JSONObject logRecord = new JSONObject();
-      logRecord.put("user", game.pickPlayer());
+      logRecord.put("user", game.player);
       logRecord.put("game", gameId);
+
+      JSONObject action = new JSONObject();
+      if (game.currentAction == 1) {
+        // Start new game
+        action.put("actionNumber", game.currentAction);
+        action.put("actionType", "GameStart");
+      } else if (game.currentAction >= game.maxActions) {
+        // End game
+        action.put("actionNumber", game.currentAction);
+        action.put("actionType", "GameEnd");
+        action.put("points", game.playerPoints);
+        String gameStatus = rand.nextInt(2) == 0 ? "Win" : "Loss";
+        action.put("gameStatus", gameStatus);
+      } else {
+
+      }
+
+      game.currentAction++;
+      game.printContents();
+      games.put(gameId, game);
       numGames++;
     }
   }
