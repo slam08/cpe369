@@ -1,11 +1,14 @@
+import java.io.FileWriter;
+import java.io.IOException;
+
 import java.util.Map;
 import java.util.HashMap;
-
 import java.util.Random;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
+import org.json.JSONTokener;
 
 public class BeFuddled {
   private class Game {
@@ -130,13 +133,15 @@ public class BeFuddled {
    * @param args
    *   command line arguments
    **/
-  private void startLoggingGames(String[] args) throws JSONException {
+  private void startLoggingGames(String[] args) throws 
+      JSONException, IOException {
     String fileName = args[0];
     Integer jsonObjCount = Integer.parseInt(args[1]),
             numGames = 0,
             numLogs = 0;
-    Map<Integer, Game> games = new HashMap<Integer, Game>();
     Random rand = new Random();
+    Map<Integer, Game> games = new HashMap<Integer, Game>();
+    JSONArray jsonArr = new JSONArray();
    
     for (int logCnt = 1; logCnt <= jsonObjCount; logCnt++) {
       Integer gameId = getGameId(games, numGames);
@@ -166,16 +171,20 @@ public class BeFuddled {
       } else {
         // Perform regular or special move
       }
-
       logRecord.put("action", action);
+      jsonArr.put(logRecord);
       game.currentAction++;
       game.printContents();
       games.put(gameId, game);
       numGames++;
     }
+
+    try (FileWriter writer = new FileWriter(fileName)) {
+      writer.write(jsonArr.toString(2));
+    }
   }
 
-  public static void main(String[] args) throws JSONException {
+  public static void main(String[] args) throws JSONException, IOException {
     BeFuddled main = new BeFuddled();
     main.startLoggingGames(args);
   }
