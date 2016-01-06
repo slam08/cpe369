@@ -167,6 +167,7 @@ public class BeFuddled {
         // Perform regular or special move
       }
 
+      logRecord.put("action", action);
       game.currentAction++;
       game.printContents();
       games.put(gameId, game);
