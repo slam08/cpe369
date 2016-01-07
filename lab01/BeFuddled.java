@@ -11,26 +11,79 @@ import org.json.JSONException;
 import org.json.JSONTokener;
 
 public class BeFuddled {
+  /** Nested class to save game state. */
   private class Game {
     public boolean finished;
     public String player;
     public Integer playerPoints;
     public Integer currentAction, maxActions;
     private Random rand;
+    public boolean usedShuffle;
+    public boolean usedClear;
+    public boolean usedInvert;
+    public boolean usedRotate;
 
+    /** Initialize fields */
     public Game() {
       finished = false;
       playerPoints = 0;
       currentAction = 1;
       rand = new Random();
       maxActions = generateMaxActions();
+      usedShuffle = false;
+      usedClear = false;
+      usedInvert = false;
+      usedRotate = false;
     } 
 
+    /**
+     * Randomly pick a special move with the following percentages:
+     *   - Shuffle: 0.33
+     *   - Clear: 0.23
+     *   - Invert: 0.22
+     *   - Rotate: 0.22
+     *
+     *  @return
+     *    The name of the special move used.
+     **/
+    public String pickSpecialMove() {
+      boolean reroll;
+      String move = new String();
+
+      do {
+        int value = this.rand.nextInt(100);
+        reroll = false;
+        if (!usedShuffle && value < 33) {
+          move = "Shuffle";
+          usedShuffle = true;
+        } else if (!usedClear && value >= 33 && value < 56) {
+          move = "Clear";
+          usedClear = true;
+        } else if (!usedInvert && value >= 56 && value < 78) {
+          move = "Invert";
+          usedClear = true;
+        } else if (!usedRotate && value >= 78 && value < 100) {
+          move = "Rotate";
+          usedRotate = true;
+        } else {
+          reroll = true;
+        }
+      } while (reroll);
+      
+      return move;
+    } 
+
+    /**
+     * Generate a random value using a normal curve 
+     * with a mean of 45 and standard deviation of 15.
+     *
+     * @return
+     *   An integer between 9 and 100
+     **/
     private int generateMaxActions() {
       int i;
 
       do {
-        // Generate a number with a mean of 45 and standard deviation of 15.
         i = (int) Math.round(this.rand.nextGaussian() * 15 + 45);
       } while (i < 9 || i > 100);
 
@@ -53,6 +106,7 @@ public class BeFuddled {
       this.finished = true;
     }
 
+    /** Print the current fields of the game for debugging purposes. */
     public void printContents() {
       System.out.println("--------------------");
       System.out.println("player: " + this.player);
@@ -140,8 +194,26 @@ public class BeFuddled {
   }
 
   /**
-   * Generate an action for a game and update its status
-   * (start game, end game, regular or special move).
+   * Pick a random value between 1 and 20 using a normal curve  
+   * with a mean of 10 and standard deviation of 5.
+   *
+   * @return
+   *   An integer between 1 and 20
+   **/
+  private int pickLocation() {
+    int value;
+    Random rand = new Random();
+
+    do {
+      value = (int) Math.round(rand.nextGaussian() * 5 + 10);  
+    } while (value < 1 || value > 20);
+
+    return value;
+  }
+
+  /**
+   * Generate an action for a game and update its state.
+   * The possible moves are: GameStart, GameEnd, Move, SpecialMove.
    *
    * @param game
    *   Game for which to generate an action and update.
@@ -152,22 +224,49 @@ public class BeFuddled {
     JSONObject action = new JSONObject();
     Random rand = new Random();
 
+    action.put("actionNumber", game.currentAction);
     if (game.currentAction == 1) {
       // Start new game
-      action.put("actionNumber", game.currentAction);
       action.put("actionType", "GameStart");
       game.incrementCurrentAction();
     } else if (game.currentAction >= game.maxActions) {
       // End game
-      action.put("actionNumber", game.currentAction);
       action.put("actionType", "GameEnd");
       action.put("points", game.playerPoints);
       String gameStatus = rand.nextInt(2) == 0 ? "Win" : "Loss";
       action.put("gameStatus", gameStatus);
       game.setFinished();
     } else {
-      // Perform regular or special move
-      action.put("actionNumber", game.currentAction);
+      // 5% chance to perform a special move
+      int i = rand.nextInt(100) + 1;
+      if (i <= 5) {
+        // special move
+        action.put("actionType", "SpecialMove");
+        action.put("move", game.pickSpecialMove());
+
+
+        int points = rand.nextInt(41) - 20; // -20 to 20 points
+        action.put("pointsAdded", points);
+        game.addToPoints(points);
+        action.put("points", game.playerPoints);
+
+      } else {
+        // regular move
+        action.put("actionType", "Move");
+
+        JSONObject location = new JSONObject();
+        int locationX = pickLocation();
+        int locationY = pickLocation();
+        location.put("x", locationX);
+        location.put("y", locationY);
+        action.put("location", location);
+
+        int points = rand.nextInt(41) - 20; // -20 to 20 points
+        action.put("pointsAdded", points);
+        game.addToPoints(points);
+        action.put("points", game.playerPoints);
+
+      }
       game.incrementCurrentAction();
     }
 
@@ -207,7 +306,7 @@ public class BeFuddled {
 
       jsonArr.put(logRecord);   // add log record to json array
       games.put(gameId, game);  // update games map
-      game.printContents();   // debug
+      // game.printContents();   // debug
     }
 
     try (FileWriter writer = new FileWriter(fileName)) {
