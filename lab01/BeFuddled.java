@@ -26,20 +26,15 @@ public class BeFuddled {
       maxActions = generateMaxActions();
     } 
 
-    // Predetermined last action
-    private Integer generateMaxActions() {
-      Integer i = this.rand.nextInt(10) + 1;
+    private int generateMaxActions() {
+      int i;
 
-      if (i == 1) {
-        // 10% chance to return a value between 9 and 40
-        return this.rand.nextInt(32) + 9;
-      } else if (i == 10) {
-        // 10% chance to return a value between 70 and 100
-        return this.rand.nextInt(31) + 70;
-      } else {
-        // 80% chance to return a value between 40 and 60
-        return this.rand.nextInt(21) + 40;
-      }
+      do {
+        // Generate a number with a mean of 45 and standard deviation of 15.
+        i = (int) Math.round(this.rand.nextGaussian() * 15 + 45);
+      } while (i < 9 || i > 100);
+
+      return i;
     }
 
     public void incrementCurrentAction() {
@@ -122,7 +117,7 @@ public class BeFuddled {
   }
 
   /**
-   * Create a new game and assign it two randomly generated player ids.
+   * Create a new game and assign a player to it.
    *
    * @param existingGames
    *   A map of games that have already been created
@@ -197,20 +192,22 @@ public class BeFuddled {
    
     for (int logCnt = 1; logCnt <= jsonObjCount; logCnt++) {
       Integer gameId = getGameId(games, numGames);
-      // Create a new game and add to map
       Game game = games.get(gameId);
       if (game == null) {
+        // Create a new game
         game = generateGame(games);
+        numGames++;
       }
+
+      // Generate random data and add it to the log record
       JSONObject logRecord = new JSONObject();
       logRecord.put("user", game.player);
       logRecord.put("game", gameId);
       logRecord.put("action", generateAction(game));
-      jsonArr.put(logRecord);
-      games.put(gameId, game);
-      numGames++;
-      // debug
-      game.printContents();
+
+      jsonArr.put(logRecord);   // add log record to json array
+      games.put(gameId, game);  // update games map
+      game.printContents();   // debug
     }
 
     try (FileWriter writer = new FileWriter(fileName)) {
