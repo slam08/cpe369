@@ -42,6 +42,22 @@ public class BeFuddled {
       }
     }
 
+    public void incrementCurrentAction() {
+      this.currentAction++;
+    }
+
+    public void addToPoints(int amount) {
+      this.playerPoints += amount;
+    }
+
+    public void setPlayer(String player) {
+      this.player = player;
+    }
+
+    public void setFinished() {
+      this.finished = true;
+    }
+
     public void printContents() {
       System.out.println("--------------------");
       System.out.println("player: " + this.player);
@@ -52,7 +68,9 @@ public class BeFuddled {
     }
   }
 
+
   private static int MAX_PLAYERS = 10000;
+
 
   /**
    * Randomly generate a game id that is either currently playing
@@ -96,7 +114,6 @@ public class BeFuddled {
                                      String player) {
     for (Map.Entry<Integer, Game> gameEntry : existingGames.entrySet()) {
       Game game = gameEntry.getValue();
-
       if (game.player == player && !game.finished) {
         return true;
       }
@@ -122,9 +139,44 @@ public class BeFuddled {
       playerId = rand.nextInt(MAX_PLAYERS) + 1;
       player = "u" + playerId.toString();
     } while (alreadyPlayingGame(existingGames, player));
-    game.player = player;
+    game.setPlayer(player);
 
     return game;
+  }
+
+  /**
+   * Generate an action for a game and update its status
+   * (start game, end game, regular or special move).
+   *
+   * @param game
+   *   Game for which to generate an action and update.
+   * @return 
+   *   The action as a JSONObject
+   **/
+  private JSONObject generateAction(Game game) throws JSONException {
+    JSONObject action = new JSONObject();
+    Random rand = new Random();
+
+    if (game.currentAction == 1) {
+      // Start new game
+      action.put("actionNumber", game.currentAction);
+      action.put("actionType", "GameStart");
+      game.incrementCurrentAction();
+    } else if (game.currentAction >= game.maxActions) {
+      // End game
+      action.put("actionNumber", game.currentAction);
+      action.put("actionType", "GameEnd");
+      action.put("points", game.playerPoints);
+      String gameStatus = rand.nextInt(2) == 0 ? "Win" : "Loss";
+      action.put("gameStatus", gameStatus);
+      game.setFinished();
+    } else {
+      // Perform regular or special move
+      action.put("actionNumber", game.currentAction);
+      game.incrementCurrentAction();
+    }
+
+    return action;
   }
 
   /**
@@ -145,39 +197,20 @@ public class BeFuddled {
    
     for (int logCnt = 1; logCnt <= jsonObjCount; logCnt++) {
       Integer gameId = getGameId(games, numGames);
-
       // Create a new game and add to map
       Game game = games.get(gameId);
       if (game == null) {
         game = generateGame(games);
       }
-
       JSONObject logRecord = new JSONObject();
       logRecord.put("user", game.player);
       logRecord.put("game", gameId);
-
-      JSONObject action = new JSONObject();
-      if (game.currentAction == 1) {
-        // Start new game
-        action.put("actionNumber", game.currentAction);
-        action.put("actionType", "GameStart");
-      } else if (game.currentAction >= game.maxActions) {
-        // End game
-        action.put("actionNumber", game.currentAction);
-        action.put("actionType", "GameEnd");
-        action.put("points", game.playerPoints);
-        String gameStatus = rand.nextInt(2) == 0 ? "Win" : "Loss";
-        action.put("gameStatus", gameStatus);
-        game.finished = true;
-      } else {
-        // Perform regular or special move
-      }
-      logRecord.put("action", action);
+      logRecord.put("action", generateAction(game));
       jsonArr.put(logRecord);
-      game.currentAction++;
-      game.printContents();
       games.put(gameId, game);
       numGames++;
+      // debug
+      game.printContents();
     }
 
     try (FileWriter writer = new FileWriter(fileName)) {
@@ -189,6 +222,4 @@ public class BeFuddled {
     BeFuddled main = new BeFuddled();
     main.startLoggingGames(args);
   }
-
-  
 }
