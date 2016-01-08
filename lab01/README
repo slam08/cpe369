@@ -1,0 +1,7 @@
+To compile:
+  $ cd beFuddled
+  $ javac -cp ../org.json-20120521.jar beFuddled.java Game.java
+
+To run:
+  $ cd beFuddled
+  $ java -cp .:../\org.json-20120521.jar beFuddled <file name> <number of logs>
