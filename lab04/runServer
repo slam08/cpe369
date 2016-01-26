@@ -1,0 +1,1 @@
+java -cp lib/*:bin lab04.server.ServerSpoof $1

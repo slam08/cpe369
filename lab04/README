@@ -1,0 +1,15 @@
+CPE 369 - Lab 04
+MongoDB Application
+Authors:    Scott Lam (slam08)
+            Michael Golahi (mgolahi)
+Date:       26 January 2016
+
+
+To compile:
+    $ ./compileFiles
+
+To run client spoof:
+    $ ./runClient lib/config.json
+
+To run server spoof:
+    $ ./runServer lib/config.json

@@ -1,0 +1,2 @@
+javac -d bin -cp src:lib/* src/lab04/client/ClientSpoof.java
+javac -d bin -cp src:lib/* src/lab04/server/ServerSpoof.java

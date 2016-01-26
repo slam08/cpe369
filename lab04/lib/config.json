@@ -1,0 +1,12 @@
+{
+    "mongo": "cslvm31",
+    "port": 27017,
+    "database": "slam08",
+    "collection": "messages",
+    "monitor": "logs",
+    "delay": 10,
+    "words": "sense.txt",
+    "clientLog": "client.log",
+    "serverLog": "server.log",
+    "wordFilter": "filter.json",
+}
