@@ -1,0 +1,36 @@
+// CSC 369 - Lab 03
+// Scott Lam
+// slam08@calpoly.edu
+// ThghtShre dataset
+
+use slam08;
+
+// Query 1
+db.thghtshre.find({"user": "u100"});
+
+// Query 2
+db.thghtshre.find().sort({"messageId": -1}).skip(5).limit(6);
+
+// Query 3
+db.thghtshre.find({"recipient": {"$nin": ["all", "self", "subscribers"]}}, {"recipient": 1, "_id": 0}).sort({"recipient": 1});
+
+// Query 4
+db.thghtshre.find({"status": "protected"}).count();
+
+// Query 5
+db.thghtshre.find({"in-response" : {"$exists": true}}, {"text": 1, "_id": 0});
+
+// Query 6
+db.thghtshre.find({"status": "public", "recipient": "self"}).sort({"messageId": -1});
+
+// Query 7
+db.thghtshre.find({"status": "public", "recipient": "self", "in-response": {"$exists": true}}, {"text": 1, "_id": 0});
+
+// Query 8
+db.thghtshre.find({}, {"recipient": 1, "text": 1, "_id": 0}).sort({"messageId": -1}).limit(4);
+
+// Query 9
+db.thghtshre.find({"status": "private", "recipient": "self"}, {"user": 1, "_id": 0});
+
+// Query 10
+db.thghtshre.find({"status": "public", "recipient": "all", "in-response": {"$exists": false}}, {"text": 1, "_id": 0}).sort({"messageId": 1});

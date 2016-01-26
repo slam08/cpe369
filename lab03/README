@@ -1,0 +1,24 @@
+CSC 369 - Lab 03
+Scott Lam (slam08@calpoly.edu)
+
+
+To generate a data insertion script:
+    $ python createScript.py <path to json file> <database name> <collection name> 
+
+The name of the generated script will have the format "insert_<database>_<collection>.js".
+    e.g python createScript.py beFuddled50.out slam08 fudd 
+        => insert_slam08_fudd.js
+
+To run the generated script:
+    $ mongo <generated script>
+
+
+To run beFuddled queries: 
+    $ mongo < beFuddled.mongo
+Or, if you want to run the JavaScript file:
+    $ mongo beFuddled.js
+
+To run thghtShre queries:
+    $ mongo < thghtShre.mongo
+Or, if you want to run the JavaScript file:
+    $ mongo thghtShre.js
